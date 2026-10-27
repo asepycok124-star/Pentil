@@ -1,0 +1,2301 @@
+pcall(function()
+
+	local set = setthreadidentity or set_thread_identity or setthreadcontext or set_identity
+
+	if set then pcall(set, 8) pcall(set, 7) end
+
+end)
+
+local RGB = Color3.fromRGB
+
+local CREDIT_LINK = "https://discord.gg/7Pfw9GWnub"
+local CREDIT_TEXT = "Open sourced and removed key system by " .. CREDIT_LINK
+
+local function copyLink()
+	local ok = false
+	pcall(function() if type(setclipboard) == "function" then setclipboard(CREDIT_LINK) ok = true end end)
+	pcall(function()
+		local s = game:GetService("StarterGui")
+		if s and s.SetClipboard then s:SetClipboard(CREDIT_LINK) ok = true end
+	end)
+	return ok
+end
+
+local function creditWait()
+	local player = game:GetService("Players")
+	local tween = game:GetService("TweenService")
+	local uis = game:GetService("UserInputService")
+
+	local host
+	pcall(function() if type(gethui) == "function" then host = gethui() end end)
+	if type(host) ~= "Instance" then host = game:GetService("CoreGui"):FindFirstChild("RobloxGui") end
+	if not host then host = player.LocalPlayer:WaitForChild("PlayerGui") end
+
+	local done = false
+
+	local gui = Instance.new("ScreenGui")
+	gui.Name = "FxHubCredit" gui.DisplayOrder = 999999 gui.IgnoreGuiInset = true
+	gui.ResetOnSpawn = false gui.Parent = host
+
+	local bg = Instance.new("Frame")
+	bg.Name = "Backdrop" bg.Size = UDim2.fromScale(1, 1) bg.BackgroundColor3 = RGB(3, 5, 10)
+	bg.BackgroundTransparency = 0.2 bg.BorderSizePixel = 0 bg.Active = true bg.Parent = gui
+
+	local card = Instance.new("TextButton")
+	card.Name = "Card" card.AnchorPoint = Vector2.new(0.5, 0.5) card.Position = UDim2.fromScale(0.5, 0.5)
+	card.Size = UDim2.fromOffset(460, 240) card.BackgroundColor3 = RGB(8, 18, 36)
+	card.BorderSizePixel = 0 card.AutoButtonColor = false card.Text = "" card.TextTransparency = 1
+	card.Active = true card.Parent = bg
+
+	local corner = Instance.new("UICorner") corner.CornerRadius = UDim.new(0, 10) corner.Parent = card
+	local stroke = Instance.new("UIStroke") stroke.Color = RGB(59, 234, 255) stroke.Thickness = 1.25 stroke.Transparency = 0.2 stroke.Parent = card
+
+	local function label(str, ypos, h, sz, col, align)
+		local l = Instance.new("TextLabel")
+		l.Size = UDim2.new(1, -48, 0, h) l.Position = UDim2.fromOffset(24, ypos)
+		l.BackgroundTransparency = 1 l.Font = Enum.Font.GothamMedium l.TextSize = sz
+		l.Text = str l.TextColor3 = col l.TextXAlignment = align or Enum.TextXAlignment.Left
+		l.Active = false l.Parent = card
+		return l
+	end
+
+	label("FX HUB", 20, 14, 11, RGB(191, 244, 255))
+	label("OPEN SOURCE", 20, 14, 11, RGB(18, 168, 255), Enum.TextXAlignment.Right)
+
+	local rule = Instance.new("Frame")
+	rule.Size = UDim2.new(1, -48, 0, 1) rule.Position = UDim2.fromOffset(24, 44)
+	rule.BackgroundColor3 = RGB(28, 42, 62) rule.BorderSizePixel = 0 rule.Parent = card
+
+	label("Key system removed", 60, 30, 24, RGB(226, 236, 246))
+	local sub = label(CREDIT_TEXT, 96, 58, 13, RGB(122, 138, 160))
+	sub.TextWrapped = true sub.TextYAlignment = Enum.TextYAlignment.Top
+
+	local btn = Instance.new("TextButton")
+	btn.Name = "Copy" btn.Size = UDim2.new(1, -48, 0, 40) btn.Position = UDim2.fromOffset(24, 162)
+	btn.BackgroundColor3 = RGB(18, 168, 255) btn.BorderSizePixel = 0 btn.AutoButtonColor = false
+	btn.Font = Enum.Font.GothamBold btn.TextSize = 14 btn.Text = "COPY DISCORD LINK" btn.TextColor3 = RGB(4, 11, 24)
+	btn.Active = true btn.Parent = card
+	local bc = Instance.new("UICorner") bc.CornerRadius = UDim.new(0, 10) bc.Parent = btn
+	local btnStroke = Instance.new("UIStroke") btnStroke.Color = RGB(191, 244, 255) btnStroke.Transparency = 0.35 btnStroke.Thickness = 1 btnStroke.Parent = btn
+
+	label("or press enter", 208, 14, 11, RGB(70, 82, 100), Enum.TextXAlignment.Center)
+
+	local function paint(target, col)
+		tween:Create(target, TweenInfo.new(0.15), {BackgroundColor3 = col}):Play()
+	end
+
+	btn.MouseEnter:Connect(function() paint(btn, RGB(59, 234, 255)); tween:Create(btnStroke, TweenInfo.new(0.15), {Transparency = 0}):Play() end)
+	btn.MouseLeave:Connect(function() paint(btn, RGB(18, 168, 255)); tween:Create(btnStroke, TweenInfo.new(0.15), {Transparency = 0.35}):Play() end)
+	card.MouseEnter:Connect(function() tween:Create(stroke, TweenInfo.new(0.15), {Color = RGB(54, 100, 146)}):Play() end)
+	card.MouseLeave:Connect(function() tween:Create(stroke, TweenInfo.new(0.15), {Color = RGB(59, 234, 255)}):Play() end)
+
+	local conn
+	local function accept()
+		if done then return end
+		if not copyLink() then
+			btn.Text = "copy failed - press enter to retry"
+			paint(btn, RGB(196, 58, 78))
+			return
+		end
+		done = true
+		btn.Text = "copied - loading"
+		if conn then conn:Disconnect() end
+	end
+
+	conn = uis.InputBegan:Connect(function(input, focused)
+		if done or focused then return end
+		if input.KeyCode == Enum.KeyCode.Return or input.KeyCode == Enum.KeyCode.Space then accept() end
+	end)
+
+	card.MouseButton1Click:Connect(accept)
+	card.InputBegan:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.MouseButton1 then accept() end
+	end)
+	btn.MouseButton1Click:Connect(accept)
+
+	while not done do task.wait(0.1) end
+
+	local fade = TweenInfo.new(0.4, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+	tween:Create(bg, fade, {BackgroundTransparency = 1}):Play()
+	tween:Create(card, fade, {BackgroundTransparency = 1}):Play()
+	tween:Create(stroke, fade, {Transparency = 1}):Play()
+	for _, d in ipairs(card:GetDescendants()) do
+		if d:IsA("TextLabel") or d:IsA("TextButton") then
+			tween:Create(d, fade, {TextTransparency = 1, BackgroundTransparency = 1}):Play()
+		elseif d:IsA("Frame") then
+			tween:Create(d, fade, {BackgroundTransparency = 1}):Play()
+		end
+	end
+
+	task.wait(0.45)
+	pcall(function() gui:Destroy() end)
+end
+
+creditWait()
+
+local Players = game:GetService("Players")
+local TweenService = game:GetService("TweenService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local LocalPlayer = Players.LocalPlayer
+
+local BRAND = {
+	Name    = "Fx Hub",
+	Version = "1.0.0",
+	Discord = "https://discord.gg/liquidhub",
+	Invite  = "discord.gg/liquidhub",
+	Logo    = "rbxassetid://139497684190586",
+	LogoRaw = "139497684190586",
+	Deep  = Color3.fromHex("09070B"),
+	Navy  = Color3.fromHex("171017"),
+	Mid   = Color3.fromHex("2A111A"),
+	Cyan  = Color3.fromHex("FF3158"),
+	Azure = Color3.fromHex("E11D48"),
+	Royal = Color3.fromHex("8F1239"),
+	Sheen = Color3.fromHex("FFC0CB"),
+	Text  = Color3.fromHex("FFF1F4"),
+}
+
+local ICON = {
+	Drops    = "droplet",
+	Bolt     = "zap",
+	Crown    = "crown",
+	Shield   = "shield",
+	Terminal = "terminal",
+	Question = "circle-question-mark",
+	Star     = "star",
+	Rocket   = "rocket",
+	Heart    = "heart",
+	Gamepad  = "gamepad-2",
+	Spark    = "sparkles",
+	Dot      = "dot",
+	Key      = "key",
+	House    = "house",
+	Package  = "package",
+	Egg      = "egg",
+	Coins    = "coins",
+	Gift     = "gift",
+	Dumbbell = "dumbbell",
+	Flask    = "flask-conical",
+	Cart     = "shopping-cart",
+	Trend    = "arrow-up-right",
+	Move     = "move",
+	Gem      = "gem",
+	ShieldOK = "shield-check",
+	Gear     = "settings",
+}
+
+local USE_BRAND_LOGO = true
+
+local LOGO_ICON = USE_BRAND_LOGO and BRAND.Logo or ICON.Drops
+
+local LOAD_GEN = math.floor(os.clock() * 100000) % 1000000 + math.random(1, 999) * 1000000
+
+ReplicatedStorage:SetAttribute("LH_LoadGen", LOAD_GEN)
+
+local function isCurrentGen()
+	return ReplicatedStorage:GetAttribute("LH_LoadGen") == LOAD_GEN
+end
+
+local Splash = nil
+
+do
+	local PlayerGui = LocalPlayer:FindFirstChild("PlayerGui")
+
+	if PlayerGui then
+		local gui = Instance.new("ScreenGui")
+		gui.Name = "FxHubSplash"
+		gui.DisplayOrder = 999
+		gui.IgnoreGuiInset = true
+		gui.ResetOnSpawn = false
+		gui.Parent = PlayerGui
+
+		local backdrop = Instance.new("Frame")
+		backdrop.Size = UDim2.fromScale(1, 1)
+		backdrop.BackgroundColor3 = BRAND.Deep
+		backdrop.BorderSizePixel = 0
+		backdrop.Parent = gui
+
+		local grad = Instance.new("UIGradient")
+		grad.Color = ColorSequence.new({
+			ColorSequenceKeypoint.new(0, BRAND.Mid),
+			ColorSequenceKeypoint.new(0.55, BRAND.Navy),
+			ColorSequenceKeypoint.new(1, BRAND.Deep),
+		})
+		grad.Rotation = 35
+		grad.Parent = backdrop
+
+		local glow = Instance.new("Frame")
+		glow.Name = "Glow"
+		glow.AnchorPoint = Vector2.new(0.5, 0.5)
+		glow.Position = UDim2.fromScale(0.5, 0.44)
+		glow.Size = UDim2.fromOffset(420, 420)
+		glow.BackgroundColor3 = BRAND.Azure
+		glow.BackgroundTransparency = 0.82
+		glow.BorderSizePixel = 0
+		glow.Parent = backdrop
+		Instance.new("UICorner", glow).CornerRadius = UDim.new(1, 0)
+
+		for _, radius in ipairs({ 200, 236 }) do
+			local ring = Instance.new("Frame")
+			ring.AnchorPoint = Vector2.new(0.5, 0.5)
+			ring.Position = UDim2.fromScale(0.5, 0.44)
+			ring.Size = UDim2.fromOffset(radius * 2, radius * 2)
+			ring.BackgroundTransparency = 1
+			ring.BorderSizePixel = 0
+			ring.Parent = backdrop
+
+			local stroke = Instance.new("UIStroke")
+			stroke.Color = BRAND.Cyan
+			stroke.Transparency = radius == 200 and 0.88 or 0.93
+			stroke.Thickness = 1.5
+			stroke.Parent = ring
+
+			Instance.new("UICorner", ring).CornerRadius = UDim.new(1, 0)
+		end
+
+		local mark = Instance.new("TextLabel")
+		mark.Name = "Mark"
+		mark.AnchorPoint = Vector2.new(0.5, 0.5)
+		mark.Position = UDim2.fromScale(0.5, 0.42)
+		mark.Size = UDim2.fromOffset(460, 130)
+		mark.BackgroundTransparency = 1
+		mark.Font = Enum.Font.Code
+		mark.TextSize = 92
+		mark.Text = "</>"
+		mark.TextColor3 = BRAND.Text
+		mark.TextStrokeColor3 = BRAND.Royal
+		mark.TextStrokeTransparency = 0.45
+		mark.Parent = backdrop
+
+		local title = Instance.new("TextLabel")
+		title.AnchorPoint = Vector2.new(0.5, 0.5)
+		title.Position = UDim2.fromScale(0.5, 0.58)
+		title.Size = UDim2.new(1, -40, 0, 40)
+		title.BackgroundTransparency = 1
+		title.Font = Enum.Font.GothamBold
+		title.TextSize = 30
+		title.Text = BRAND.Name
+		title.TextColor3 = BRAND.Text
+		title.Parent = backdrop
+
+		local status = Instance.new("TextLabel")
+		status.Name = "Status"
+		status.AnchorPoint = Vector2.new(0.5, 0.5)
+		status.Position = UDim2.fromScale(0.5, 0.66)
+		status.Size = UDim2.new(1, -40, 0, 22)
+		status.BackgroundTransparency = 1
+		status.Font = Enum.Font.GothamMedium
+		status.TextSize = 13
+		status.Text = "Loading interface..."
+		status.TextColor3 = BRAND.Cyan
+		status.Parent = backdrop
+
+		local sheen = Instance.new("Frame")
+		sheen.AnchorPoint = Vector2.new(0, 0.5)
+		sheen.Position = UDim2.fromScale(-0.3, 0.42)
+		sheen.Size = UDim2.fromOffset(180, 180)
+		sheen.BackgroundTransparency = 0.9
+		sheen.BorderSizePixel = 0
+		sheen.Rotation = 20
+		sheen.Parent = backdrop
+		Instance.new("UICorner", sheen).CornerRadius = UDim.new(1, 0)
+
+		TweenService:Create(sheen, TweenInfo.new(1.4, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+			Position = UDim2.fromScale(1.3, 0.42),
+		}):Play()
+
+		TweenService:Create(glow, TweenInfo.new(2.6, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true), {
+			Size = UDim2.fromOffset(470, 470),
+		}):Play()
+
+		Splash = { gui = gui, status = status }
+	end
+end
+
+local function splashStatus(text)
+	if Splash and Splash.status then
+		pcall(function() Splash.status.Text = text end)
+	end
+end
+
+local function splashClose()
+	if not Splash then return end
+	local gui = Splash.gui
+	local ok = pcall(function()
+		if not gui or not gui.Parent then return end
+		local backdrop = gui:FindFirstChildWhichIsA("Frame")
+		if backdrop then
+			TweenService:Create(backdrop, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {
+				BackgroundTransparency = 1,
+			}):Play()
+		end
+		task.wait(0.32)
+		gui:Destroy()
+	end)
+	if not ok then pcall(function() gui:Destroy() end) end
+	Splash = nil
+end
+
+pcall(function()
+	local rg = game:GetService("CoreGui"):FindFirstChild("RobloxGui")
+	if not rg then return end
+	for _, sg in ipairs(rg:GetChildren()) do
+		if sg:IsA("ScreenGui") then
+			if sg.Name == "Obsidian" or sg.Name == "NebulaUI" or sg.Name == "KeySystem" then
+				sg:Destroy()
+			end
+		end
+	end
+end)
+
+pcall(function()
+	local pg = LocalPlayer:FindFirstChild("PlayerGui")
+	if not pg then return end
+	for _, sg in ipairs(pg:GetChildren()) do
+		if sg:IsA("ScreenGui") and (sg.Name == "FxHubSplash" or sg.Name == "KeySystem") then
+			sg:Destroy()
+		end
+	end
+end)
+
+local Repo = "https://raw.githubusercontent.com/tyanxblack2-max/asdfasd/refs/heads/main/ui-libs/obsidian-ultra/"
+
+local LIB_SOURCES = {
+	Repo .. "Library.lua",
+	"https://cdn.jsdelivr.net/gh/tyanxblack2-max/asdfasd@main/ui-libs/obsidian-ultra/Library.lua",
+}
+
+splashStatus("Loading interface...")
+
+local Library = nil
+
+for _, url in ipairs(LIB_SOURCES) do
+	local ok, res = pcall(function()
+		return game:HttpGet(url .. "?nocache=" .. tostring(os.time()))
+	end)
+	if ok and type(res) == "string" and #res > 2000 then
+		local chunk, cerr = (loadstring or load)(res)
+		if chunk then
+			local okLib, lib = pcall(chunk)
+			if okLib and type(lib) == "table" then
+				Library = lib
+				break
+			end
+		else
+			warn("[Fx Hub] Compile error: " .. tostring(cerr))
+		end
+	end
+end
+
+if not Library or type(Library) ~= "table" then
+	warn("[Fx Hub] Failed to load ObsidianUltra from all sources")
+	splashClose()
+	return
+end
+
+local SaveManager
+pcall(function()
+	SaveManager = loadstring(game:HttpGet(Repo .. "addons/SaveManager.lua"))()
+end)
+
+local GAME_NAME = "Unknown Game"
+do
+	local pid = game.PlaceId
+	local ok, name = pcall(function()
+		local Http = game:GetService("HttpService")
+		local res = game:HttpGet("https://apis.roblox.com/universes/v1/places/" .. pid .. "/universe")
+		local universeId = Http:JSONDecode(res).universeId
+		local res2 = game:HttpGet("https://games.roblox.com/v1/games?universeIds=" .. universeId)
+		return Http:JSONDecode(res2).data[1].name
+	end)
+	if ok and type(name) == "string" and #name > 0 then
+		GAME_NAME = name
+	else
+		pcall(function()
+			for _, attr in ipairs({ "GameName", "PlaceName", "DisplayName" }) do
+				local v = ReplicatedStorage:GetAttribute(attr)
+				if type(v) == "string" and #v > 0 then
+					GAME_NAME = v
+					break
+				end
+			end
+		end)
+		if GAME_NAME == "Unknown Game" and pid ~= 0 then
+			GAME_NAME = "Place " .. pid
+		end
+	end
+end
+
+splashStatus("Building menu...")
+
+-- Snapshot existing UI roots so the floating toggle can target the GUI created by this window.
+local FxGuiRoots = {}
+local FxGuiSnapshot = {}
+do
+    local playerGui = LocalPlayer:FindFirstChildOfClass("PlayerGui")
+    local coreGui = game:GetService("CoreGui")
+    local hiddenGui
+    pcall(function() if type(gethui) == "function" then hiddenGui = gethui() end end)
+    for _, root in ipairs({ hiddenGui, coreGui, playerGui }) do
+        if typeof(root) == "Instance" then
+            table.insert(FxGuiRoots, root)
+            for _, child in ipairs(root:GetChildren()) do
+                if child:IsA("ScreenGui") then FxGuiSnapshot[child] = true end
+            end
+        end
+    end
+end
+
+local Window = Library:CreateWindow({
+	Title = BRAND.Name,
+	Icon     = LOGO_ICON,
+	IconSize = UDim2.fromOffset(22, 22),
+	DisableSearch = false,
+	Size   = (game:GetService("UserInputService").TouchEnabled and UDim2.new(0.94, 0, 0.78, 0)) or UDim2.fromOffset(760, 560),
+	Center = true,
+	ShowCustomCursor = false,
+	Snapping          = false,
+	SnapAvoidCoreGui  = false,
+	DisableCompactingSnap = true,
+	ToggleKeybind = Enum.KeyCode.RightShift,
+	UnlockMouseWhileOpen = false,
+	SidebarCompacted    = false,
+	SidebarCompactWidth = 64,
+	MinSidebarWidth     = 150,
+	EnableCompacting    = true,
+	ShowMobileButtons = true,
+	DisableNotificationBell = false,
+	Animations = {
+		ToggleWindow      = true,
+		TabSwitch         = true,
+		Groupbox          = true,
+		GroupboxCollapse  = false,
+		Dropdown          = true,
+		KeyPicker         = true,
+		SubTabUnderline   = false,
+	},
+	TabButtonsStyle = {
+		Gap             = 6,
+		Padding         = 6,
+		CornerRadius    = 6,
+		Indicator       = true,
+		IndicatorWidth  = 2,
+		IndicatorHeight = 20,
+	},
+	Footer = {
+		{ Text = BRAND.Invite, Copyable = true },
+		" | ",
+		GAME_NAME,
+	},
+})
+
+Window:SetCornerRadius(8)
+
+-- Fx Hub floating toggle: independent ScreenGui so the button remains visible while minimized.
+-- The main interface is detected from the GUI roots created by the UI library.
+do
+    local UserInputService = game:GetService("UserInputService")
+    local TweenService = game:GetService("TweenService")
+    local CoreGui = game:GetService("CoreGui")
+    local PlayerGui = LocalPlayer:FindFirstChildOfClass("PlayerGui")
+
+    local function getGuiHost()
+        local host
+        pcall(function() if type(gethui) == "function" then host = gethui() end end)
+        if typeof(host) == "Instance" then return host end
+        local ok, robloxGui = pcall(function() return CoreGui:FindFirstChild("RobloxGui") end)
+        if ok and robloxGui then return robloxGui end
+        return PlayerGui or CoreGui
+    end
+
+    local host = getGuiHost()
+    local mainGui
+    local function isOurMainGui(obj)
+        if not obj:IsA("ScreenGui") then return false end
+        if obj.Name == "FxHubSplash" or obj.Name == "FxHubCredit" or obj.Name == "FxHubFloatingToggle" then return false end
+        return #obj:GetDescendants() > 8
+    end
+
+    -- Prefer the ScreenGui newly created by the library, without assuming its internal name.
+    task.wait(0.12)
+    for _, root in ipairs(FxGuiRoots) do
+        for _, obj in ipairs(root:GetChildren()) do
+            if not FxGuiSnapshot[obj] and isOurMainGui(obj) then mainGui = obj end
+        end
+    end
+    if not mainGui then
+        for _, obj in ipairs(host:GetChildren()) do
+            if isOurMainGui(obj) then mainGui = obj end
+        end
+        if not mainGui and PlayerGui then
+            for _, obj in ipairs(PlayerGui:GetChildren()) do
+                if isOurMainGui(obj) then mainGui = obj end
+            end
+        end
+    end
+
+    local floatingGui = Instance.new("ScreenGui")
+    floatingGui.Name = "FxHubFloatingToggle"
+    floatingGui.ResetOnSpawn = false
+    floatingGui.IgnoreGuiInset = true
+    floatingGui.DisplayOrder = 1000000
+    floatingGui.Parent = host
+
+    local toggle = Instance.new("TextButton")
+    toggle.Name = "FxToggle"
+    toggle.AnchorPoint = Vector2.new(1, 0.5)
+    toggle.Position = UDim2.new(1, -18, 0.58, 0)
+    toggle.Size = UDim2.fromOffset(54, 54)
+    toggle.BackgroundColor3 = BRAND.Navy
+    toggle.BorderSizePixel = 0
+    toggle.AutoButtonColor = false
+    toggle.Text = "FX"
+    toggle.TextColor3 = BRAND.Text
+    toggle.TextSize = 17
+    toggle.Font = Enum.Font.GothamBold
+    toggle.Active = true
+    toggle.Draggable = true
+    toggle.Parent = floatingGui
+
+    local round = Instance.new("UICorner")
+    round.CornerRadius = UDim.new(1, 0)
+    round.Parent = toggle
+    local outline = Instance.new("UIStroke")
+    outline.Color = BRAND.Cyan
+    outline.Thickness = 2
+    outline.Transparency = 0.12
+    outline.Parent = toggle
+
+    local function setMainVisible(visible)
+        if mainGui and mainGui.Parent then
+            mainGui.Enabled = visible
+        else
+            -- Fallback: toggle the library's window if its public method exists.
+            pcall(function()
+                if Window.Toggle then Window:Toggle() end
+            end)
+        end
+    end
+
+    local open = true
+    toggle.Activated:Connect(function()
+        open = not open
+        toggle.Text = open and "FX" or "+"
+        TweenService:Create(toggle, TweenInfo.new(0.16, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+            Size = open and UDim2.fromOffset(54, 54) or UDim2.fromOffset(48, 48),
+            BackgroundColor3 = open and BRAND.Navy or BRAND.Royal,
+        }):Play()
+        setMainVisible(open)
+    end)
+    toggle.MouseEnter:Connect(function()
+        TweenService:Create(outline, TweenInfo.new(0.15), {Thickness = 3, Transparency = 0}):Play()
+    end)
+    toggle.MouseLeave:Connect(function()
+        TweenService:Create(outline, TweenInfo.new(0.15), {Thickness = 2, Transparency = 0.12}):Play()
+    end)
+end
+
+if Library.Scheme then
+	-- Red Shadow: near-black surfaces with crimson accents
+	Library.Scheme.BackgroundColor = Color3.fromRGB(9, 7, 11)
+	Library.Scheme.MainColor       = Color3.fromRGB(23, 16, 23)
+	Library.Scheme.OutlineColor    = Color3.fromRGB(72, 28, 43)
+	Library.Scheme.AccentColor     = Color3.fromRGB(255, 49, 88)
+	Library.Scheme.FontColor       = Color3.fromRGB(255, 241, 244)
+
+	Library.Scheme.RedColor        = Color3.fromRGB(255, 49, 88)
+	Library.Scheme.BlueColor       = Color3.fromRGB(225, 29, 72)
+	Library.Scheme.WhiteColor      = Color3.fromRGB(255, 248, 250)
+	Library.Scheme.DarkColor       = Color3.fromRGB(5, 4, 7)
+	Library.Scheme.DestructiveColor = Color3.fromRGB(255, 49, 88)
+end
+
+pcall(function()
+	if Library.SetFont then Library:SetFont(Enum.Font.GothamMedium) end
+	if Library.UpdateColorsUsingRegistry then Library:UpdateColorsUsingRegistry() end
+end)
+
+local Tabs = {
+	Main      = Window:AddTab({ Name = "Main", Icon = ICON.Drops, Description = "Session overview" }),
+	Farming   = Window:AddTab({ Name = "Farming", Icon = ICON.Bolt, Description = "Training, eggs, selling and rewards" }),
+	Inventory = Window:AddTab({ Name = "Inventory", Icon = ICON.Package, Description = "Shops and upgrades" }),
+	Misc      = Window:AddTab({ Name = "Misc", Icon = ICON.Gamepad, Description = "Movement and utilities" }),
+	Settings  = Window:AddTab({ Name = "Settings", Icon = ICON.Gear, Description = "Configs" }),
+	Credits   = Window:AddTab({ Name = "Credits", Icon = ICON.Star, Description = "Team and community" }),
+}
+
+splashStatus("Waiting for game data...")
+
+local function getCharacter() return LocalPlayer.Character end
+
+local function getHumanoid()
+	local char = getCharacter()
+	return char and char:FindFirstChildOfClass("Humanoid")
+end
+
+local function getRoot()
+	local char = getCharacter()
+	return char and char:FindFirstChild("HumanoidRootPart")
+end
+
+local Remotes = ReplicatedStorage:WaitForChild("Remotes", 15)
+
+if not Remotes then
+	Library:Notify({ Title = BRAND.Name, Description = "Remotes folder not found. Join the game first.", Time = 6, Type = "Error" })
+	splashClose()
+	return
+end
+
+local function waitRemote(name, parent)
+	local success, instance = pcall(function()
+		return (parent or Remotes):WaitForChild(name, 10)
+	end)
+	if success then return instance end
+	return nil
+end
+
+local PlaceEggRequest      = waitRemote("PlaceEggRequest")
+local DropEggRequest       = waitRemote("DropEggRequest")
+local SellRemote           = waitRemote("Sell")
+local CoilsRemote          = waitRemote("Coils")
+local TrailsRemote         = waitRemote("Trails")
+local SquatTrainingRequest = waitRemote("SquatTrainingRequest")
+local StopSquattingRequest = waitRemote("StopSquattingRequest")
+local SquatBonusRequest    = waitRemote("SquatBonusRequest")
+local OfflineRewardsRemote = waitRemote("OfflineRewards")
+local IndexRewardRemote    = waitRemote("ClaimAnimalIndexReward")
+
+local REMOTE_COUNT = 0
+for _, r in ipairs({
+	PlaceEggRequest, DropEggRequest, SellRemote, CoilsRemote, TrailsRemote,
+	SquatTrainingRequest, StopSquattingRequest, SquatBonusRequest,
+	OfflineRewardsRemote, IndexRewardRemote,
+}) do
+	if r then REMOTE_COUNT += 1 end
+end
+
+if REMOTE_COUNT < 10 then
+	warn(string.format(
+		"[Fx Hub] only %d/10 remotes resolved - features depending on the missing ones will do nothing",
+		REMOTE_COUNT))
+end
+
+local Settings = ReplicatedStorage:FindFirstChild("Settings")
+
+local function requireSetting(name)
+	local module = Settings and Settings:FindFirstChild(name)
+	if not module then return nil end
+	local success, result = pcall(require, module)
+	if success then return result end
+	return nil
+end
+
+local Rarities         = requireSetting("Rarities")
+local SpeedUpgrades    = requireSetting("SpeedUpgrades")
+local TrailSettings    = requireSetting("Trails")
+local BarbellUpgrades  = requireSetting("BarbellUpgrades")
+local RecommendedJumps = requireSetting("RecommendedJumps")
+
+local ZoneJumpRequirements = { Meadow = 25 }
+
+if RecommendedJumps and type(RecommendedJumps.List) == "table" then
+	for key, value in pairs(RecommendedJumps.List) do
+		local zone = string.gsub(tostring(key), "%d+$", "")
+		local jump = tonumber(value)
+		if jump and (ZoneJumpRequirements[zone] == nil or jump < ZoneJumpRequirements[zone]) then
+			ZoneJumpRequirements[zone] = jump
+		end
+	end
+end
+
+local function teleportTo(position)
+	local root = getRoot()
+	if root and position then
+		root.CFrame = CFrame.new(position + Vector3.new(0, 3, 0))
+		return true
+	end
+	return false
+end
+
+local function holderPosition(holder)
+	if not holder then return nil end
+	if holder:IsA("BasePart") then return holder.Position end
+	if holder:IsA("Attachment") then return holder.WorldPosition end
+	return nil
+end
+
+local function getPlot()
+	local plot = LocalPlayer:FindFirstChild("Plot")
+	return plot and plot.Value or nil
+end
+
+local function getSquatDetector()
+	local plot  = getPlot()
+	local zone  = plot and plot:FindFirstChild("SquatZone")
+	local floor = zone and zone:FindFirstChild("Floor")
+	return floor and floor:FindFirstChild("Detector") or nil
+end
+
+local function getPlacementDetector()
+	local plot = getPlot()
+	return plot and plot:FindFirstChild("Detector", true) or nil
+end
+
+local function getCash()
+	local leaderstats = LocalPlayer:FindFirstChild("leaderstats")
+	local cash = leaderstats and leaderstats:FindFirstChild("Cash")
+	local value = cash and cash:FindFirstChild("V")
+	return value and tonumber(value.Value) or 0
+end
+
+local function getLevel()
+	local leaderstats = LocalPlayer:FindFirstChild("leaderstats")
+	local level = leaderstats and leaderstats:FindFirstChild("Level")
+	local value = level and level:FindFirstChild("V")
+	return value and tonumber(value.Value) or 0
+end
+
+local function isPetTool(tool)
+	return tool:IsA("Tool") and tool:GetAttribute("IsPetInventoryTool") == true
+end
+
+local function isEggTool(tool)
+	return tool:IsA("Tool") and tool:GetAttribute("IsEggTool") == true
+end
+
+local function forEachContainer(fn)
+	local character = getCharacter()
+	if LocalPlayer.Backpack then fn(LocalPlayer.Backpack) end
+	if character then fn(character) end
+end
+
+local function findTool(predicate)
+	local found
+	forEachContainer(function(container)
+		if found then return end
+		for _, child in ipairs(container:GetChildren()) do
+			if child:IsA("Tool") and predicate(child) then
+				found = child
+				return
+			end
+		end
+	end)
+	return found
+end
+
+local function countEggTools()
+	local count = 0
+	forEachContainer(function(container)
+		for _, child in ipairs(container:GetChildren()) do
+			if isEggTool(child) then count += 1 end
+		end
+	end)
+	return count
+end
+
+local function countPlacedEggs()
+	local plot   = getPlot()
+	local placed = plot and plot:FindFirstChild("PlacedEggs")
+	return placed and #placed:GetChildren() or 0
+end
+
+local function countReadyEggs()
+	local plot   = getPlot()
+	local placed = plot and plot:FindFirstChild("PlacedEggs")
+	if not placed then return 0 end
+	local ready = 0
+	for _, egg in ipairs(placed:GetChildren()) do
+		if egg:GetAttribute("HatchReady") == true then ready += 1 end
+	end
+	return ready
+end
+
+local function uniqueAnimalNames()
+	local names, seen = {}, {}
+	forEachContainer(function(container)
+		for _, child in ipairs(container:GetChildren()) do
+			if isPetTool(child) then
+				local name = child:GetAttribute("AnimalName") or child.Name
+				if not seen[name] then
+					seen[name] = true
+					table.insert(names, name)
+				end
+			end
+		end
+	end)
+	table.sort(names)
+	return names
+end
+
+local function abbreviate(value)
+	value = tonumber(value) or 0
+	local units = { "", "K", "M", "B", "T", "Qa", "Qi" }
+	local index = 1
+	while value >= 1000 and index < #units do
+		value /= 1000
+		index += 1
+	end
+	if index == 1 then return tostring(math.floor(value)) end
+	return string.format("%.2f%s", value, units[index])
+end
+
+local function formatClock(seconds)
+	seconds = math.max(math.floor(seconds), 0)
+	local hours   = math.floor(seconds / 3600)
+	local minutes = math.floor((seconds % 3600) / 60)
+	local secs    = seconds % 60
+	return string.format("%02d:%02d:%02d", hours, minutes, secs)
+end
+
+local ZoneNames = {}
+do
+	local map    = workspace:FindFirstChild("Map")
+	local stages = map and map:FindFirstChild("Stages")
+	if stages then
+		for _, stage in ipairs(stages:GetChildren()) do
+			if stage:FindFirstChild("SpawnedEggs") then table.insert(ZoneNames, stage.Name) end
+		end
+	end
+end
+if #ZoneNames == 0 then
+	ZoneNames = { "Meadow", "Coral Reef", "Winter", "Desert", "Crystal Mines", "Jungle", "Mystic Isles", "Prehistoric", "Celestial Heights", "Savannah" }
+end
+
+local AnimalNames = uniqueAnimalNames()
+if #AnimalNames == 0 then AnimalNames = { "None" } end
+
+local RARITIES = { "Common", "Uncommon", "Rare", "Epic", "Legendary", "Mythic", "Divine", "Celestial", "Eternal" }
+
+local Options = Library.Options
+local Toggles = Library.Toggles
+
+local function packSet(sel)
+	if type(sel) ~= "table" then return "" end
+	local names = {}
+	for k, v in pairs(sel) do
+		if type(k) == "string" then names[#names + 1] = k end
+		if type(v) == "string" then names[#names + 1] = v end
+	end
+	table.sort(names)
+	return table.concat(names, ",")
+end
+
+local function unpackSet(str)
+	local set = {}
+	if type(str) == "string" and str ~= "" then
+		for name in string.gmatch(str, "[^,]+") do
+			set[name] = true
+		end
+	end
+	return set
+end
+
+local function asList(packed)
+	local list = {}
+	if type(packed) == "string" and packed ~= "" then
+		for name in string.gmatch(packed, "[^,]+") do
+			list[#list + 1] = name
+		end
+	end
+	return list
+end
+
+local function getFlag(n) return ReplicatedStorage:GetAttribute("LH_" .. n) end
+local function setFlag(n, v) ReplicatedStorage:SetAttribute("LH_" .. n, v) end
+
+local function selHas(sel, value)
+	if type(sel) ~= "table" then return true end
+	local count, hit = 0, false
+	for k, v in pairs(sel) do
+		count += 1
+		if v == true and k == value then hit = true end
+		if v == value then hit = true end
+	end
+	if count == 0 then return true end
+	return hit
+end
+
+local function seedSet(flagName, list)
+	local cur = getFlag(flagName)
+	if type(cur) == "string" and cur ~= "" then return end
+	local packed = packSet(list)
+	if packed ~= "" then setFlag(flagName, packed) end
+end
+
+seedSet("StealZones", ZoneNames)
+seedSet("StealRarities", RARITIES)
+seedSet("BuyCoilList", { "Red Coil", "Candy Coil", "Yellow Coil", "Chocolate Coil" })
+seedSet("BuyTrailList", { "Blue Trail", "Red Trail", "Green Trail", "Yellow Trail", "Purple Trail", "White Trail", "Black Trail", "Galaxy Trail", "Crimson Star Trail", "Rainbow Trail" })
+
+local StartedAt = os.clock()
+
+local StatusGrid = nil
+local StatusSession, StatusCash, StatusLevel, StatusEggs, StatusSquat
+
+do
+	pcall(function()
+		Tabs.Main:AddPlayerInfo("FxHubBanner", {
+			Title = "Welcome to <b>" .. BRAND.Name .. "</b>",
+			Description = {
+				GAME_NAME .. " | press <b>RightShift</b> to toggle the menu",
+			},
+			ThumbnailType = "HeadShot",
+			Height = 84,
+		})
+	end)
+
+	local Session = Tabs.Main:AddLeftGroupbox("Session", ICON.Drops, true, false)
+	Session:AddLabel({ Text = GAME_NAME, DoesWrap = true })
+
+	pcall(function()
+		StatusGrid = Session:AddStatGrid("SessionStats", {
+			Columns   = 2,
+			TileHeight = 44,
+			Padding   = 6,
+			Items = {
+				{ Text = "Cash",    Value = "0",        ValueColor = BRAND.Azure },
+				{ Text = "Level",   Value = "0",        ValueColor = BRAND.Azure },
+				{ Text = "Eggs",    Value = "0 / 0",    Tooltip = "Carried / placed on your plot" },
+				{ Text = "Squat",   Value = "idle",     Tooltip = "Server-controlled squat state" },
+				{ Text = "Uptime",  Value = "00:00:00", ValueColor = BRAND.Sheen },
+			},
+		})
+	end)
+
+	if not StatusGrid then
+		StatusSession = Session:AddLabel({ Text = "Uptime: 00:00:00", DoesWrap = true })
+		StatusCash    = Session:AddLabel({ Text = "Cash: 0", DoesWrap = true })
+		StatusLevel   = Session:AddLabel({ Text = "Level: 0", DoesWrap = true })
+		StatusEggs    = Session:AddLabel({ Text = "Carried eggs: 0 | Placed: 0", DoesWrap = true })
+		StatusSquat   = Session:AddLabel({ Text = "Squatting: false", DoesWrap = true })
+	end
+end
+
+local QuickStealRequested = false
+
+local TrainingTab = Tabs.Farming:AddSubTab("Training", ICON.Dumbbell)
+local EggTab      = Tabs.Farming:AddSubTab("Eggs", ICON.Egg)
+local SellingTab  = Tabs.Farming:AddSubTab("Selling", ICON.Coins)
+local RewardsTab  = Tabs.Farming:AddSubTab("Rewards", ICON.Gift)
+
+do
+	local Squats = TrainingTab:AddLeftGroupbox("Squats", ICON.Dumbbell, true, false)
+	Squats:AddToggle("AutoTrain", {
+		Text = "Auto Train Squats",
+		Tooltip = "Teleports to your squat pad and trains jump XP",
+		Default = false,
+	})
+	Squats:AddToggle("AutoSquatBonus", {
+		Text = "Auto Claim Squat Bonus",
+		Tooltip = "Instantly claims the pink squat bonus popup",
+		Default = false,
+	})
+
+	TrainingTab:AddRightGroupbox("Info", ICON.Question, true, false)
+		:AddLabel("Squatting is server controlled; training pauses while you carry an egg.", true)
+end
+
+do
+	local Stealing = EggTab:AddLeftGroupbox("Stealing", ICON.Egg, true, false)
+	Stealing:AddToggle("AutoSteal", {
+		Text = "Auto Steal Eggs",
+		Tooltip = "Grabs an egg, returns to base to bank it, then places it",
+		Default = false,
+	})
+	Stealing:AddButton({
+		Text = "Instant Steal — One Shot",
+		Tooltip = "Runs one steal attempt using the selected target and filters",
+		Func = function()
+			QuickStealRequested = true
+		end,
+	})
+	Stealing:AddDropdown("StealMode", {
+		Text = "Target",
+		Values = { "Best Egg", "Nearest Egg", "Highest Rarity" },
+		Default = 1,
+		Tooltip = "Best Egg = rarest egg your Jump Power can actually reach",
+	})
+	Stealing:AddDropdown("StealZones", {
+		Text = "Zones",
+		Values = ZoneNames,
+		Default = unpackSet(getFlag("StealZones")),
+		Multi = true,
+		Searchable = true,
+		Tooltip = "Only steal eggs from these zones (empty = all)",
+	})
+	Stealing:AddDropdown("StealRarities", {
+		Text = "Rarities",
+		Values = RARITIES,
+		Default = unpackSet(getFlag("StealRarities")),
+		Multi = true,
+		Searchable = true,
+		Tooltip = "Only steal eggs of these rarities (empty = all)",
+	})
+	Stealing:AddSlider("StealDelay", {
+		Text = "Train Between Steals",
+		Default = 5,
+		Min = 0,
+		Max = 60,
+		Rounding = 0,
+		Suffix = "s",
+		Tooltip = "After each egg is placed, train squats for this long before stealing again",
+	})
+
+	local Hatching = EggTab:AddRightGroupbox("Hatching", ICON.Spark, true, false)
+	Hatching:AddToggle("AutoPlace", {
+		Text = "Auto Place Stolen Eggs",
+		Tooltip = "Places carried eggs on your plot",
+		Default = false,
+	})
+	Hatching:AddToggle("AutoHatch", {
+		Text = "Auto Hatch Ready Eggs",
+		Tooltip = "Opens every egg whose hatch timer finished, never uses Robux skip",
+		Default = false,
+	})
+
+	EggTab:AddRightGroupbox("Info", ICON.Question, true, false)
+		:AddLabel("Carrying an egg disables jumping. Auto Place moves it to your plot so the loop continues.", true)
+
+	if Options.StealZones then
+		Options.StealZones.OnChanged(function(v) setFlag("StealZones", packSet(v)) end)
+		setFlag("StealZones", packSet(Options.StealZones.Value))
+	end
+	if Options.StealRarities then
+		Options.StealRarities.OnChanged(function(v) setFlag("StealRarities", packSet(v)) end)
+		setFlag("StealRarities", packSet(Options.StealRarities.Value))
+	end
+end
+
+do
+	local Selling = SellingTab:AddLeftGroupbox("Selling", ICON.Coins, true, false)
+	Selling:AddToggle("AutoSell", {
+		Text = "Auto Sell Junk Pets",
+		Tooltip = "Equips a pet, walks to the animal seller and sells it",
+		Default = false,
+	})
+	Selling:AddDropdown("SellMode", {
+		Text = "Mode",
+		Values = { "Lowest CPS First", "Chosen Pet" },
+		Default = 1,
+	})
+	Selling:AddDropdown("AutoSellPet", {
+		Text = "Chosen Pet",
+		Values = AnimalNames,
+		Default = 1,
+		Searchable = true,
+		Tooltip = "Only used when Mode is Chosen Pet",
+	})
+	Selling:AddInput("SellMaxCps", {
+		Text = "Max CPS To Sell",
+		Default = "1000",
+		Placeholder = "1000",
+		Numeric = true,
+		Tooltip = "Lowest CPS First mode never sells pets above this value",
+	})
+
+	SellingTab:AddRightGroupbox("Info", ICON.Question, true, false)
+		:AddLabel("Sell value scales with pet CPS. Raise Max CPS only when you really want to sell better pets.", true)
+end
+
+do
+	local Claims = RewardsTab:AddLeftGroupbox("Claims", ICON.Gift, true, false)
+	Claims:AddToggle("AutoOffline", {
+		Text = "Auto Claim Offline Cash",
+		Tooltip = "Claims pending offline earnings whenever ready",
+		Default = false,
+	})
+	Claims:AddToggle("AutoIndex", {
+		Text = "Auto Claim Animal Index Rewards",
+		Tooltip = "Claims every finished Animal Index reward",
+		Default = false,
+	})
+
+	RewardsTab:AddRightGroupbox("Info", ICON.Question, true, false)
+		:AddLabel("Index rewards are claimed with a single claim-all request. Offline cash is claimed whenever a balance is waiting.", true)
+end
+
+local ShopsTab    = Tabs.Inventory:AddSubTab("Shops", ICON.Cart)
+local UpgradesTab = Tabs.Inventory:AddSubTab("Upgrades", ICON.Trend)
+
+do
+	local Coils = ShopsTab:AddLeftGroupbox("Coils", ICON.Bolt, true, false)
+	Coils:AddToggle("AutoBuyCoils", {
+		Text = "Auto Buy Coils",
+		Tooltip = "Buys selected speed coils when affordable",
+		Default = false,
+	})
+	Coils:AddDropdown("BuyCoilList", {
+		Text = "Coils",
+		Values = { "Red Coil", "Candy Coil", "Yellow Coil", "Chocolate Coil" },
+		Default = unpackSet(getFlag("BuyCoilList")),
+		Multi = true,
+		Searchable = true,
+		Tooltip = "Coils to buy (empty = none)",
+	})
+	Coils:AddToggle("AutoEquipCoil", {
+		Text = "Auto Equip Best Coil",
+		Tooltip = "Equips the highest tier coil you own",
+		Default = false,
+	})
+
+	local Trails = ShopsTab:AddRightGroupbox("Trails", ICON.Spark, true, false)
+	Trails:AddToggle("AutoBuyTrails", {
+		Text = "Auto Buy Trails",
+		Tooltip = "Buys selected jump trails when affordable",
+		Default = false,
+	})
+	Trails:AddDropdown("BuyTrailList", {
+		Text = "Trails",
+		Values = { "Blue Trail", "Red Trail", "Green Trail", "Yellow Trail", "Purple Trail", "White Trail", "Black Trail", "Galaxy Trail", "Crimson Star Trail", "Rainbow Trail" },
+		Default = unpackSet(getFlag("BuyTrailList")),
+		Multi = true,
+		Searchable = true,
+		Tooltip = "Trails to buy (empty = none)",
+	})
+	Trails:AddToggle("AutoEquipTrail", {
+		Text = "Auto Equip Best Trail",
+		Tooltip = "Equips the highest jump multiplier trail you own",
+		Default = false,
+	})
+
+	if Options.BuyCoilList then
+		Options.BuyCoilList.OnChanged(function(v) setFlag("BuyCoilList", packSet(v)) end)
+		setFlag("BuyCoilList", packSet(Options.BuyCoilList.Value))
+	end
+	if Options.BuyTrailList then
+		Options.BuyTrailList.OnChanged(function(v) setFlag("BuyTrailList", packSet(v)) end)
+		setFlag("BuyTrailList", packSet(Options.BuyTrailList.Value))
+	end
+end
+
+do
+	local Barbell = UpgradesTab:AddLeftGroupbox("Barbell", ICON.Dumbbell, true, false)
+	Barbell:AddToggle("AutoBarbell", {
+		Text = "Auto Upgrade Barbell",
+		Tooltip = "Buys the next barbell level whenever you can afford it",
+		Default = false,
+	})
+
+	local Mutation = UpgradesTab:AddRightGroupbox("Mutation Machine", ICON.Flask, true, false)
+	Mutation:AddToggle("AutoAddMutation", {
+		Text = "Auto Add Pets To Mutation Machine",
+		Tooltip = "Feeds five matching pets into the machine",
+		Default = false,
+	})
+	Mutation:AddDropdown("MutationMode", {
+		Text = "Pet Choice",
+		Values = { "Auto Select", "Chosen Animal" },
+		Default = 1,
+	})
+	Mutation:AddDropdown("MutationAnimal", {
+		Text = "Chosen Animal",
+		Values = AnimalNames,
+		Default = 1,
+		Searchable = true,
+	})
+	Mutation:AddToggle("AutoClaimMutation", {
+		Text = "Auto Claim Gold Mutation",
+		Tooltip = "Claims the finished gold pet",
+		Default = false,
+	})
+	Mutation:AddToggle("AutoReturnMutation", {
+		Text = "Auto Return Mutation Pets",
+		Tooltip = "Returns stored pets when the machine allows it",
+		Default = false,
+	})
+end
+
+local UserInputService = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
+
+local AntiAfkOn = ReplicatedStorage:GetAttribute("LH_AntiAfkOn")
+if AntiAfkOn == nil then setFlag("AntiAfkOn", true) end
+
+local NoclipOn = ReplicatedStorage:GetAttribute("LH_NoclipOn")
+if NoclipOn == nil then setFlag("NoclipOn", false) end
+
+local HideNameOn = ReplicatedStorage:GetAttribute("LH_HideNameOn")
+if HideNameOn == nil then setFlag("HideNameOn", false) end
+
+local FlyOn = ReplicatedStorage:GetAttribute("LH_FlyOn")
+if FlyOn == nil then setFlag("FlyOn", false) end
+
+local flySpeed = ReplicatedStorage:GetAttribute("LH_FlySpeed")
+if type(flySpeed) ~= "number" then flySpeed = 60 setFlag("FlySpeed", 60) end
+
+local noclipRunning = false
+local flyOn = FlyOn == true
+local flyBV, flyBG, flyConn
+local flyKeys = { W = false, A = false, S = false, D = false, Space = false, Ctrl = false }
+
+local defaultWalkSpeed, defaultJumpHeight = 16, 7.2
+pcall(function()
+	local h = getHumanoid()
+	if h then
+		defaultWalkSpeed = h.WalkSpeed
+		defaultJumpHeight = h.UseJumpPower and h.JumpPower or h.JumpHeight
+	end
+end)
+
+local currentWalkSpeed = ReplicatedStorage:GetAttribute("LH_WalkSpeed")
+if type(currentWalkSpeed) ~= "number" then currentWalkSpeed = defaultWalkSpeed end
+
+local currentJump = ReplicatedStorage:GetAttribute("LH_JumpHeight")
+if type(currentJump) ~= "number" then currentJump = defaultJumpHeight end
+
+local function setNoclip(on)
+	pcall(function()
+		local char = getCharacter()
+		if not char then return end
+		for _, v in ipairs(char:GetDescendants()) do
+			if v:IsA("BasePart") then v.CanCollide = not on end
+		end
+		local hrp = char:FindFirstChild("HumanoidRootPart")
+		if hrp then hrp.CanCollide = not on end
+	end)
+end
+
+local function applyHideName(on)
+	local char = getCharacter()
+	if char then
+		local hum = char:FindFirstChildOfClass("Humanoid")
+		if hum then
+			hum.NameDisplayDistance = on and 0 or 100
+			hum.DisplayName = on and "" or LocalPlayer.DisplayName
+		end
+		for _, gui in ipairs(char:GetDescendants()) do
+			if gui:IsA("BillboardGui") then
+				gui.Enabled = not on
+				for _, lbl in ipairs(gui:GetDescendants()) do
+					if lbl:IsA("TextLabel") then
+						lbl.Visible = not on
+						lbl.TextTransparency = on and 1 or 0
+					end
+				end
+			end
+		end
+	end
+end
+
+local function noclipLoop()
+	noclipRunning = true
+	while getFlag("NoclipOn") and isCurrentGen() do
+		pcall(function() setNoclip(true) end)
+		task.wait(0.2)
+	end
+	pcall(function() setNoclip(false) end)
+	noclipRunning = false
+end
+
+local function applyWalkSpeed(v)
+	currentWalkSpeed = math.clamp(tonumber(v) or defaultWalkSpeed, 8, 200)
+	setFlag("WalkSpeed", currentWalkSpeed)
+	local hum = getHumanoid()
+	if hum then pcall(function() hum.WalkSpeed = currentWalkSpeed end) end
+end
+
+local function applyJump(v)
+	currentJump = math.clamp(tonumber(v) or defaultJumpHeight, 0, 200)
+	setFlag("JumpHeight", currentJump)
+	local hum = getHumanoid()
+	if hum then
+		pcall(function()
+			if hum.UseJumpPower then hum.JumpPower = currentJump else hum.JumpHeight = currentJump end
+		end)
+	end
+end
+
+local function stopFly()
+	flyOn = false
+	setFlag("FlyOn", false)
+	if flyConn then flyConn:Disconnect() flyConn = nil end
+	if flyBV then flyBV:Destroy() flyBV = nil end
+	if flyBG then flyBG:Destroy() flyBG = nil end
+	local hum = getHumanoid()
+	if hum then pcall(function() hum.PlatformStand = false end) end
+	pcall(function() setNoclip(getFlag("NoclipOn") == true) end)
+end
+
+local function startFly()
+	local char = getCharacter()
+	local hrp = char and char:FindFirstChild("HumanoidRootPart")
+	local hum = getHumanoid()
+	if not hrp or not hum then return end
+
+	flyOn = true
+	setFlag("FlyOn", true)
+	pcall(function() hum.PlatformStand = true end)
+
+	flyBG = Instance.new("BodyGyro")
+	flyBG.P = 9e4
+	flyBG.maxTorque = Vector3.new(9e9, 9e9, 9e9)
+	flyBG.cframe = hrp.CFrame
+	flyBG.Parent = hrp
+
+	flyBV = Instance.new("BodyVelocity")
+	flyBV.velocity = Vector3.zero
+	flyBV.maxForce = Vector3.new(9e9, 9e9, 9e9)
+	flyBV.Parent = hrp
+
+	setNoclip(true)
+
+	flyConn = RunService.Heartbeat:Connect(function()
+		if not flyOn or not isCurrentGen() then stopFly() return end
+		local char2 = getCharacter()
+		local hrp2 = char2 and char2:FindFirstChild("HumanoidRootPart")
+		local cam = workspace.CurrentCamera
+		if not hrp2 or not flyBV or not flyBG or not cam then return end
+
+		local move = Vector3.zero
+		if flyKeys.W then move += cam.CFrame.LookVector end
+		if flyKeys.S then move -= cam.CFrame.LookVector end
+		if flyKeys.A then move -= cam.CFrame.RightVector end
+		if flyKeys.D then move += cam.CFrame.RightVector end
+		if flyKeys.Space then move += Vector3.new(0, 1, 0) end
+		if flyKeys.Ctrl then move -= Vector3.new(0, 1, 0) end
+		if move.Magnitude > 0 then move = move.Unit * flySpeed end
+
+		flyBV.velocity = move
+		flyBG.cframe = cam.CFrame
+	end)
+end
+
+UserInputService.InputBegan:Connect(function(input, gpe)
+	if gpe then return end
+	local k = input.KeyCode
+	if k == Enum.KeyCode.W then flyKeys.W = true
+	elseif k == Enum.KeyCode.A then flyKeys.A = true
+	elseif k == Enum.KeyCode.S then flyKeys.S = true
+	elseif k == Enum.KeyCode.D then flyKeys.D = true
+	elseif k == Enum.KeyCode.Space then flyKeys.Space = true
+	elseif k == Enum.KeyCode.LeftControl or k == Enum.KeyCode.LeftShift then flyKeys.Ctrl = true end
+end)
+
+UserInputService.InputEnded:Connect(function(input)
+	local k = input.KeyCode
+	if k == Enum.KeyCode.W then flyKeys.W = false
+	elseif k == Enum.KeyCode.A then flyKeys.A = false
+	elseif k == Enum.KeyCode.S then flyKeys.S = false
+	elseif k == Enum.KeyCode.D then flyKeys.D = false
+	elseif k == Enum.KeyCode.Space then flyKeys.Space = false
+	elseif k == Enum.KeyCode.LeftControl or k == Enum.KeyCode.LeftShift then flyKeys.Ctrl = false end
+end)
+
+LocalPlayer.CharacterAdded:Connect(function(char)
+	task.wait(0.6)
+	local hum = char:WaitForChild("Humanoid", 6)
+	if hum then
+		pcall(function() hum.WalkSpeed = currentWalkSpeed end)
+		pcall(function()
+			if hum.UseJumpPower then hum.JumpPower = currentJump else hum.JumpHeight = currentJump end
+		end)
+	end
+	if getFlag("HideNameOn") == true then task.wait(0.2) applyHideName(true) end
+	if flyOn then task.wait(0.2) startFly() end
+end)
+
+task.spawn(function()
+	while isCurrentGen() do
+		task.wait(0.5)
+		local hum = getHumanoid()
+		if hum then
+			if math.abs(hum.WalkSpeed - currentWalkSpeed) > 0.5 then
+				pcall(function() hum.WalkSpeed = currentWalkSpeed end)
+			end
+			local cur = hum.UseJumpPower and hum.JumpPower or hum.JumpHeight
+			if math.abs(cur - currentJump) > 0.5 then
+				pcall(function()
+					if hum.UseJumpPower then hum.JumpPower = currentJump else hum.JumpHeight = currentJump end
+				end)
+			end
+			if getFlag("HideNameOn") == true then pcall(function() applyHideName(true) end) end
+		end
+		if getFlag("NoclipOn") == true and not noclipRunning then task.spawn(noclipLoop) end
+	end
+end)
+
+do
+	local Utilities = Tabs.Misc:AddLeftGroupbox("Utilities", ICON.Shield, true, false)
+	Utilities:AddToggle("AntiAFK", {
+		Text = "Anti-AFK",
+		Tooltip = "Jumps every 5 minutes so Roblox never kicks you",
+		Default = getFlag("AntiAfkOn") ~= false,
+	})
+	Utilities:AddToggle("HideName", {
+		Text = "Hide Name",
+		Tooltip = "Hides your nametag and overhead billboard",
+		Default = getFlag("HideNameOn") == true,
+	})
+	Utilities:AddToggle("Noclip", {
+		Text = "Noclip",
+		Tooltip = "Walk through walls",
+		Default = getFlag("NoclipOn") == true,
+	})
+
+	local Movement = Tabs.Misc:AddRightGroupbox("Movement", ICON.Move, true, false)
+	Movement:AddSlider("Walkspeed", {
+		Text = "Walkspeed",
+		Min = 8,
+		Max = 200,
+		Default = currentWalkSpeed,
+		Rounding = 0,
+		Tooltip = "Default 16 - Max 200",
+	})
+	Movement:AddSlider("Jumpheight", {
+		Text = "Jump Height",
+		Min = 0,
+		Max = 200,
+		Default = currentJump,
+		Rounding = 0,
+		Tooltip = "JumpHeight / JumpPower (auto)",
+	})
+
+	local Flight = Tabs.Misc:AddRightGroupbox("Flight", ICON.Rocket, true, false)
+	Flight:AddToggle("Fly", {
+		Text = "Fly",
+		Tooltip = "Enable flight (noclip while flying)",
+		Default = flyOn,
+	})
+	Flight:AddSlider("FlySpeed", {
+		Text = "Fly Speed",
+		Min = 10,
+		Max = 250,
+		Default = flySpeed,
+		Rounding = 5,
+		Suffix = " studs/s",
+		Tooltip = "Studs per second",
+	})
+end
+
+if Toggles.Noclip then
+	Toggles.Noclip.OnChanged(function(v)
+		if v and not noclipRunning then task.spawn(noclipLoop) end
+		if not v then pcall(function() setNoclip(false) end) end
+	end)
+end
+if Toggles.HideName then
+	Toggles.HideName.OnChanged(function(v) applyHideName(v) end)
+end
+if Toggles.Fly then
+	Toggles.Fly.OnChanged(function(v) if v then startFly() else stopFly() end end)
+end
+if Toggles.AntiAFK then
+	Toggles.AntiAFK.OnChanged(function(v) setFlag("AntiAfkOn", v) end)
+end
+if Toggles.Walkspeed then
+	Toggles.Walkspeed.OnChanged(function(v) applyWalkSpeed(v) end)
+end
+if Toggles.Jumpheight then
+	Toggles.Jumpheight.OnChanged(function(v) applyJump(v) end)
+end
+if Toggles.FlySpeed then
+	Toggles.FlySpeed.OnChanged(function(v)
+		flySpeed = math.clamp(tonumber(v) or 60, 10, 250)
+		setFlag("FlySpeed", flySpeed)
+	end)
+end
+if Toggles.AutoTrain then
+	Toggles.AutoTrain.OnChanged(function(value)
+		if value == false and LocalPlayer:GetAttribute("IsSquatting") == true and StopSquattingRequest then
+			StopSquattingRequest:FireServer()
+		end
+	end)
+end
+
+if HideNameOn == true then applyHideName(true) end
+if getFlag("NoclipOn") == true and not noclipRunning then task.spawn(noclipLoop) end
+if flyOn then task.defer(function() task.wait(0.8) if getFlag("FlyOn") == true then startFly() end end) end
+
+local LastIndexClaim     = 0
+local LastBarbellAction = 0
+local LastBonusClaim    = 0
+local CarryWatchSince   = nil
+local NextStealAt       = 0
+local NextPlaceAttempt  = 0
+local PlaceRotation     = 0
+
+local function zoneReachable(zone)
+	local required = ZoneJumpRequirements[zone]
+	if required == nil then return true end
+	local jp = LocalPlayer:FindFirstChild("JumpPower")
+	jp = jp and tonumber(jp.Value) or 0
+	return jp >= required
+end
+
+local function findEggPrompt(mode)
+	local map    = workspace:FindFirstChild("Map")
+	local stages = map and map:FindFirstChild("Stages")
+	if not stages then return nil, nil end
+
+	local root = getRoot()
+	local origin = root and root.Position or Vector3.zero
+	local zoneFilter   = unpackSet(getFlag("StealZones"))
+	local rarityFilter = unpackSet(getFlag("StealRarities"))
+
+	local bestPrompt, bestScore, bestPosition
+
+	for _, stage in ipairs(stages:GetChildren()) do
+		local spawned = stage:FindFirstChild("SpawnedEggs")
+		if spawned and selHas(zoneFilter, stage.Name) then
+			for _, egg in ipairs(spawned:GetChildren()) do
+				local rarity = egg:GetAttribute("Rarity")
+				if selHas(rarityFilter, rarity) then
+					local prompt = egg:FindFirstChildWhichIsA("ProximityPrompt", true)
+					if prompt and prompt.Enabled then
+						local worldPosition = holderPosition(prompt.Parent)
+						if worldPosition then
+							local distance = (worldPosition - origin).Magnitude
+							local rarityIndex = 0
+							if Rarities and Rarities.GetIndex then
+								rarityIndex = Rarities.GetIndex(rarity) or 0
+							end
+							local score
+							if mode == "Nearest Egg" then
+								score = -distance
+							else
+
+								if mode == "Best Egg" and not zoneReachable(stage.Name) then continue end
+								score = rarityIndex * 1000000 - distance * 0.001
+							end
+							if not bestScore or score > bestScore then
+								bestPrompt, bestScore, bestPosition = prompt, score, worldPosition
+							end
+						end
+					end
+				end
+			end
+		end
+	end
+
+	return bestPrompt, bestPosition
+end
+
+local function doCarryRecovery()
+	if not Toggles.AutoSteal.Value and not Toggles.AutoPlace.Value then
+		CarryWatchSince = nil
+		return
+	end
+
+	local carried = (tonumber(LocalPlayer:GetAttribute("CarriedEggCount")) or 0) > 0
+	local tool = findTool(isEggTool)
+
+	if carried and not tool then
+		local base = getPlacementDetector()
+		local root = getRoot()
+		if base and root and (root.Position - base.Position).Magnitude > 40 then
+			teleportTo(base.Position)
+			task.wait(0.4)
+		end
+		if not CarryWatchSince then
+			CarryWatchSince = os.clock()
+		elseif os.clock() - CarryWatchSince > 30 and DropEggRequest then
+			DropEggRequest:FireServer()
+			CarryWatchSince = os.clock()
+			task.wait(0.5)
+		end
+	else
+		CarryWatchSince = nil
+	end
+end
+
+local function doAutoTrain()
+	if not Toggles.AutoTrain.Value then return end
+
+	if Toggles.AutoHatch.Value and countReadyEggs() > 0 then
+		if LocalPlayer:GetAttribute("IsSquatting") == true and StopSquattingRequest then
+			StopSquattingRequest:FireServer()
+		end
+		return
+	end
+
+	if Toggles.AutoSteal.Value and (tonumber(LocalPlayer:GetAttribute("CarriedEggCount")) or 0) > 0 then
+		return
+	end
+
+	local detector = getSquatDetector()
+	local root = getRoot()
+	if not detector or not root then return end
+
+	if (root.Position - detector.Position).Magnitude > 10 then
+		teleportTo(detector.Position)
+		task.wait(0.3)
+	end
+
+	if LocalPlayer:GetAttribute("IsSquatting") ~= true and SquatTrainingRequest then
+		SquatTrainingRequest:FireServer(detector)
+		task.wait(0.25)
+	end
+end
+
+local function doAutoSquatBonus()
+	if not Toggles.AutoSquatBonus.Value or not SquatBonusRequest then return end
+	if LocalPlayer:GetAttribute("SquatBonusAvailable") ~= true then return end
+	if os.clock() - LastBonusClaim < 0.4 then return end
+	LastBonusClaim = os.clock()
+	local version = math.floor(tonumber(LocalPlayer:GetAttribute("SquatBonusVersion")) or 0)
+	SquatBonusRequest:FireServer(version)
+end
+
+local function doAutoPlace()
+	if not Toggles.AutoPlace.Value or not PlaceEggRequest then return end
+	if os.clock() < NextPlaceAttempt then return end
+
+	local list = {}
+	forEachContainer(function(container)
+		for _, child in ipairs(container:GetChildren()) do
+			if isEggTool(child) then table.insert(list, child) end
+		end
+	end)
+	if #list == 0 then return end
+
+	PlaceRotation += 1
+	local carrying = list[(PlaceRotation % #list) + 1]
+	local humanoid = getHumanoid()
+	local detector = getPlacementDetector()
+	if not humanoid or not detector then return end
+
+	NextPlaceAttempt = os.clock() + 2
+	pcall(function() humanoid:EquipTool(carrying) end)
+	task.wait(0.2)
+
+	PlaceEggRequest:FireServer(carrying:GetAttribute("EggId"), detector.Position + Vector3.new(0, 2, 0))
+	task.wait(0.35)
+
+	if not carrying.Parent then
+		local delay = tonumber(Options.StealDelay and Options.StealDelay.Value) or 5
+		NextStealAt = os.clock() + math.max(delay, 0)
+	end
+end
+
+local function doAutoSteal()
+	if not Toggles.AutoSteal.Value and not QuickStealRequested then return end
+	if os.clock() < NextStealAt then return end
+	if countEggTools() >= 3 then return end
+	if (tonumber(LocalPlayer:GetAttribute("CarriedEggCount")) or 0) > 0 then return end
+
+	local prompt, position = findEggPrompt(Options.StealMode and Options.StealMode.Value)
+	if not prompt or not position then return end
+
+	if LocalPlayer:GetAttribute("IsSquatting") == true and StopSquattingRequest then
+		StopSquattingRequest:FireServer()
+		local deadline = os.clock() + 1.5
+		while LocalPlayer:GetAttribute("IsSquatting") == true and os.clock() < deadline do
+			task.wait(0.15)
+		end
+	end
+
+	teleportTo(position)
+	task.wait(0.35)
+	if prompt.Enabled then fireproximityprompt(prompt) end
+	task.wait(0.4)
+
+	local base = getPlacementDetector()
+	if base then
+		teleportTo(base.Position)
+		task.wait(0.6)
+	end
+	QuickStealRequested = false
+end
+
+local function doAutoHatch()
+	if not Toggles.AutoHatch.Value then return end
+	local plot   = getPlot()
+	local placed = plot and plot:FindFirstChild("PlacedEggs")
+	if not placed then return end
+
+	for _, egg in ipairs(placed:GetChildren()) do
+		if egg:GetAttribute("HatchReady") == true then
+			local prompt = egg:FindFirstChildWhichIsA("ProximityPrompt", true)
+			if prompt and prompt.Enabled then
+				local position = holderPosition(prompt.Parent)
+				if position then
+					teleportTo(position)
+					task.wait(0.25)
+				end
+				fireproximityprompt(prompt)
+				task.wait(0.35)
+				return
+			end
+		end
+	end
+end
+
+local function findSellTarget()
+	local mode   = Options.SellMode and Options.SellMode.Value
+	local chosen = Options.AutoSellPet and Options.AutoSellPet.Value
+	local maxCps = tonumber(Options.SellMaxCps and Options.SellMaxCps.Value) or 1000
+
+	local bestTool, bestCps
+	forEachContainer(function(container)
+		for _, child in ipairs(container:GetChildren()) do
+			if isPetTool(child) then
+				local name = child:GetAttribute("AnimalName") or child.Name
+				local cps  = tonumber(child:GetAttribute("CashPerSecond")) or math.huge
+				if mode == "Chosen Pet" then
+					if name == chosen and (not bestCps or cps < bestCps) then
+						bestTool, bestCps = child, cps
+					end
+				elseif cps <= maxCps and (not bestCps or cps < bestCps) then
+					bestTool, bestCps = child, cps
+				end
+			end
+		end
+	end)
+	return bestTool
+end
+
+local function doAutoSell()
+	if not Toggles.AutoSell.Value then return end
+	if findTool(isEggTool) then return end
+
+	local tool = findSellTarget()
+	if not tool then return end
+
+	local humanoid = getHumanoid()
+	if not humanoid then return end
+	pcall(function() humanoid:EquipTool(tool) end)
+
+	local sellRoot = workspace:FindFirstChild("Map") and workspace.Map:FindFirstChild("Sell")
+	local detector = sellRoot and sellRoot:FindFirstChild("Detector", true)
+	if detector and detector:IsA("BasePart") then
+		teleportTo(detector.Position)
+		task.wait(0.3)
+	end
+
+	local prompt = detector and detector:FindFirstChild("SellAnimalPrompt", true)
+	if prompt and prompt.Enabled then
+		fireproximityprompt(prompt)
+	elseif SellRemote then
+		SellRemote:FireServer()
+	end
+	task.wait(0.4)
+end
+
+local function doAutoOffline()
+	if not Toggles.AutoOffline.Value or not OfflineRewardsRemote then return end
+	if (tonumber(LocalPlayer:GetAttribute("OfflineCashPending")) or 0) > 0 then
+		OfflineRewardsRemote:FireServer("Claim")
+		task.wait(0.25)
+	end
+end
+
+local function doAutoIndex()
+	if not Toggles.AutoIndex.Value or not IndexRewardRemote then return end
+	if os.clock() - LastIndexClaim < 15 then return end
+	LastIndexClaim = os.clock()
+	IndexRewardRemote:FireServer("__ALL__")
+end
+
+local function ownedValue(folder, name)
+	local entry = folder and folder:FindFirstChild(name)
+	return entry and entry.Value == true
+end
+
+local function doAutoCoils()
+	local coilData = LocalPlayer:FindFirstChild("CoilData")
+	if not coilData or not CoilsRemote then return end
+
+	local owned    = coilData:FindFirstChild("Owned")
+	local equipped = coilData:FindFirstChild("Equipped")
+
+	if Toggles.AutoBuyCoils.Value and SpeedUpgrades then
+		for name in pairs(unpackSet(getFlag("BuyCoilList"))) do
+			local config = SpeedUpgrades.Get(name)
+			if config and not ownedValue(owned, name) and getCash() >= config.Cost then
+				CoilsRemote:FireServer("Select", name)
+				task.wait(0.25)
+			end
+		end
+	end
+
+	if Toggles.AutoEquipCoil.Value and SpeedUpgrades and equipped then
+		local bestName, bestOrder = nil, -1
+		if owned then
+			for _, entry in ipairs(owned:GetChildren()) do
+				if entry.Value == true then
+					local config = SpeedUpgrades.Get(entry.Name)
+					local order = config and config.Order or 0
+					if order > bestOrder then
+						bestName, bestOrder = entry.Name, order
+					end
+				end
+			end
+		end
+		if bestName and equipped.Value ~= bestName then
+			CoilsRemote:FireServer("Select", bestName)
+			task.wait(0.2)
+		end
+	end
+end
+
+local function doAutoTrails()
+	local trailData = LocalPlayer:FindFirstChild("TrailData")
+	if not trailData or not TrailsRemote then return end
+
+	local owned    = trailData:FindFirstChild("Owned")
+	local equipped = trailData:FindFirstChild("Equipped")
+
+	if Toggles.AutoBuyTrails.Value and TrailSettings then
+		for name in pairs(unpackSet(getFlag("BuyTrailList"))) do
+			local config = TrailSettings.Get(name)
+			if config and not ownedValue(owned, name) and getCash() >= config.Cost then
+				TrailsRemote:FireServer("Select", name)
+				task.wait(0.25)
+			end
+		end
+	end
+
+	if Toggles.AutoEquipTrail.Value and TrailSettings and equipped then
+		local bestName, bestOrder = nil, -1
+		if owned then
+			for _, entry in ipairs(owned:GetChildren()) do
+				if entry.Value == true then
+					local config = TrailSettings.Get(entry.Name)
+					local order = config and config.Order or 0
+					if order > bestOrder then
+						bestName, bestOrder = entry.Name, order
+					end
+				end
+			end
+		end
+		if bestName and equipped.Value ~= bestName then
+			TrailsRemote:FireServer("Select", bestName)
+			task.wait(0.2)
+		end
+	end
+end
+
+local function doAutoBarbell()
+	if not Toggles.AutoBarbell.Value or not BarbellUpgrades or not BarbellUpgrades.GetNext then return end
+	if os.clock() - LastBarbellAction < 3 then return end
+	LastBarbellAction = os.clock()
+
+	local level = LocalPlayer:FindFirstChild("BarbellLevel")
+	if not level then return end
+
+	local nextUpgrade = BarbellUpgrades.GetNext(math.max(math.floor(tonumber(level.Value) or 1), 1))
+	if not nextUpgrade then return end
+	if getCash() < (tonumber(nextUpgrade.CashPrice) or 0) then return end
+
+	local plot     = getPlot()
+	local zone     = plot and plot:FindFirstChild("SquatZone")
+	local upgradeB = zone and zone:FindFirstChild("UpgradeB")
+	local prompt   = upgradeB and upgradeB:FindFirstChild("BarbellUpgradePrompt", true)
+	if not prompt or not prompt.Enabled then return end
+
+	local position = holderPosition(prompt.Parent)
+	if position then
+		teleportTo(position)
+		task.wait(0.25)
+	end
+	fireproximityprompt(prompt)
+	task.wait(0.4)
+end
+
+local function findMutationPet(targetName)
+	local candidate, candidateCps
+	forEachContainer(function(container)
+		for _, child in ipairs(container:GetChildren()) do
+			if isPetTool(child) then
+				local name = child:GetAttribute("AnimalName") or child.Name
+				local cps  = tonumber(child:GetAttribute("CashPerSecond")) or math.huge
+				if name == targetName and (not candidateCps or cps < candidateCps) then
+					candidate, candidateCps = child, cps
+				end
+			end
+		end
+	end)
+	return candidate
+end
+
+local function findDuplicateAnimal()
+	local counts, lowest = {}, {}
+	forEachContainer(function(container)
+		for _, child in ipairs(container:GetChildren()) do
+			if isPetTool(child) then
+				local name = child:GetAttribute("AnimalName") or child.Name
+				local cps  = tonumber(child:GetAttribute("CashPerSecond")) or math.huge
+				counts[name] = (counts[name] or 0) + 1
+				if not lowest[name] or cps < lowest[name] then lowest[name] = cps end
+			end
+		end
+	end)
+
+	local bestName, bestCps
+	for name, count in pairs(counts) do
+		if count >= 2 and (not bestCps or lowest[name] < bestCps) then
+			bestName, bestCps = name, lowest[name]
+		end
+	end
+	return bestName
+end
+
+local function mutationDetector()
+	local map       = workspace:FindFirstChild("Map")
+	local mutations = map and map:FindFirstChild("Mutations")
+	return mutations and mutations:FindFirstChild("Detector") or nil
+end
+
+local function fireMutation(name, detector)
+	local prompt = detector and detector:FindFirstChild(name, true)
+	if not prompt or not prompt.Enabled then return false end
+
+	local position = holderPosition(prompt.Parent)
+	if position then
+		teleportTo(position)
+		task.wait(0.2)
+	end
+	fireproximityprompt(prompt)
+	task.wait(0.35)
+	return true
+end
+
+local function doAutoMutation()
+	local active    = LocalPlayer:GetAttribute("MutationCraftActive") == true
+	local ready     = LocalPlayer:GetAttribute("MutationCraftReady") == true
+	local canRemove = LocalPlayer:GetAttribute("MutationCanRemove") == true
+	local detector  = mutationDetector()
+
+	if Toggles.AutoClaimMutation.Value and active and ready then
+		fireMutation("MutationPrompt", detector)
+		return
+	end
+
+	if Toggles.AutoReturnMutation.Value and active and canRemove then
+		fireMutation("MutationRemovePrompt", detector)
+		return
+	end
+
+	if not Toggles.AutoAddMutation.Value or active then return end
+
+	local target = LocalPlayer:GetAttribute("MutationCraftAnimalName")
+	if type(target) ~= "string" or target == "" then
+		if Options.MutationMode and Options.MutationMode.Value == "Chosen Animal" then
+			target = Options.MutationAnimal and Options.MutationAnimal.Value
+		else
+			target = findDuplicateAnimal()
+		end
+	end
+	if not target or target == "None" then return end
+
+	local tool = findMutationPet(target)
+	if not tool then return end
+
+	local humanoid = getHumanoid()
+	if not humanoid then return end
+
+	pcall(function() humanoid:EquipTool(tool) end)
+	task.wait(0.2)
+	fireMutation("MutationPrompt", detector)
+end
+
+local function farmLoop(steps, interval)
+	task.spawn(function()
+		while isCurrentGen() do
+			for _, step in ipairs(steps) do
+				if not isCurrentGen() then return end
+				local ok, err = pcall(step)
+				if not ok and isCurrentGen() then
+					warn("[Fx Hub] " .. tostring(err))
+				end
+			end
+			task.wait(interval or 0.5)
+		end
+	end)
+end
+
+farmLoop({
+	doCarryRecovery,
+	doAutoPlace,
+	doAutoSteal,
+	doAutoSell,
+	doAutoTrain,
+	doAutoSquatBonus,
+	doAutoHatch,
+	doAutoBarbell,
+})
+
+farmLoop({
+	doAutoOffline,
+	doAutoIndex,
+	doAutoCoils,
+	doAutoTrails,
+})
+
+farmLoop({ doAutoMutation }, 6)
+
+task.spawn(function()
+	while isCurrentGen() do
+		task.wait(300)
+		if isCurrentGen() and getFlag("AntiAfkOn") ~= false then
+			pcall(function()
+				local hum = getHumanoid()
+				if hum then hum.Jump = true end
+				local virtualUser = game:GetService("VirtualUser")
+				virtualUser:CaptureController()
+				virtualUser:ClickButton2(Vector2.new())
+			end)
+		end
+	end
+end)
+
+task.spawn(function()
+	while isCurrentGen() do
+		pcall(function()
+			local uptime    = formatClock(os.clock() - StartedAt)
+			local cash      = abbreviate(getCash())
+			local level     = tostring(getLevel())
+			local carried   = countEggTools()
+			local placed    = countPlacedEggs()
+			local squatting = LocalPlayer:GetAttribute("IsSquatting") == true
+
+			if StatusGrid and StatusGrid.SetValue then
+				StatusGrid:SetValue("Cash", cash)
+				StatusGrid:SetValue("Level", level)
+				StatusGrid:SetValue("Eggs", string.format("%d / %d", carried, placed))
+				StatusGrid:SetValue("Squat", squatting and "training" or "idle",
+					squatting and BRAND.Cyan or BRAND.Sheen)
+				StatusGrid:SetValue("Uptime", uptime)
+			end
+
+			if StatusSession then
+				StatusSession.Text = "Uptime: " .. uptime
+				StatusCash.Text = "Cash: " .. cash
+				StatusLevel.Text = "Level: " .. level
+				StatusEggs.Text = string.format("Carried eggs: %d | Placed: %d", carried, placed)
+				StatusSquat.Text = "Squatting: " .. tostring(squatting)
+			end
+		end)
+		task.wait(1)
+	end
+end)
+
+if SaveManager then
+	pcall(function()
+		SaveManager:SetLibrary(Library)
+		SaveManager:IgnoreThemeSettings()
+		SaveManager:SetIgnoreIndexes({ "MenuKeybind" })
+		SaveManager:SetFolder("FxHub/JumpForAnimals")
+
+		local addGroupbox = Tabs.Settings.AddGroupbox
+		Tabs.Settings.AddGroupbox = function(self, info)
+			info = info or {}
+			info.Side = "Left"
+			return addGroupbox(self, info)
+		end
+
+		local okBuild, buildErr = pcall(function()
+			SaveManager:BuildConfigSection(Tabs.Settings)
+		end)
+
+		Tabs.Settings.AddGroupbox = addGroupbox
+
+		if not okBuild then warn("[Fx Hub] config section failed: " .. tostring(buildErr)) end
+
+		SaveManager:LoadAutoloadConfig()
+	end)
+end
+
+-- Presets: use the existing Save/Load config section below Settings to save named profiles.
+pcall(function()
+	local profileInfo = Tabs.Settings:AddLeftGroupbox("Fx Hub V2 Profiles", ICON.Terminal, true, false)
+	profileInfo:AddLabel("Use the config manager to save and load named presets. Suggested profiles: Default, Mobile, and Compact.", true)
+	profileInfo:AddLabel("Search is enabled; use the library search field to find controls quickly.", true)
+end)
+
+
+-- Fx Hub V2 tools: lightweight activity log, diagnostics, and emergency stop.
+-- This panel is intentionally independent of the UI library so it remains usable on touch devices.
+do
+    local UserInputService = game:GetService("UserInputService")
+    local playerGui = LocalPlayer:FindFirstChildOfClass("PlayerGui") or LocalPlayer:WaitForChild("PlayerGui")
+    local old = playerGui:FindFirstChild("FxHubV2Tools")
+    if old then pcall(function() old:Destroy() end) end
+
+    local logLines = {}
+    local maxLines = 7
+    local panelOpen = false
+    local ui = Instance.new("ScreenGui")
+    ui.Name = "FxHubV2Tools"
+    ui.ResetOnSpawn = false
+    ui.IgnoreGuiInset = true
+    ui.DisplayOrder = 1000001
+    ui.Parent = playerGui
+
+    local function make(className, props, parent)
+        local obj = Instance.new(className)
+        for k, v in pairs(props) do obj[k] = v end
+        obj.Parent = parent
+        return obj
+    end
+
+    local accent = BRAND.Cyan
+    local card = make("Frame", {
+        Name = "Panel", AnchorPoint = Vector2.new(0, 1),
+        Position = UDim2.new(0, 12, 1, -12), Size = UDim2.fromOffset(300, 42),
+        BackgroundColor3 = BRAND.Deep, BackgroundTransparency = 0.04,
+        BorderSizePixel = 0, ClipsDescendants = true,
+    }, ui)
+    make("UICorner", {CornerRadius = UDim.new(0, 10)}, card)
+    make("UIStroke", {Color = accent, Thickness = 1.5, Transparency = 0.18}, card)
+
+    local header = make("TextLabel", {
+        Name = "Header", Position = UDim2.fromOffset(12, 0), Size = UDim2.new(1, -110, 0, 42),
+        BackgroundTransparency = 1, Font = Enum.Font.GothamBold, TextSize = 12,
+        TextXAlignment = Enum.TextXAlignment.Left, Text = "FX HUB  /  V2 TOOLS",
+        TextColor3 = BRAND.Text,
+    }, card)
+
+    local function button(name, text, pos, size, parent)
+        local b = make("TextButton", {
+            Name = name, Position = pos, Size = size, BackgroundColor3 = BRAND.Mid,
+            BorderSizePixel = 0, AutoButtonColor = false, Font = Enum.Font.GothamBold,
+            TextSize = 11, Text = text, TextColor3 = BRAND.Text,
+        }, parent)
+        make("UICorner", {CornerRadius = UDim.new(0, 7)}, b)
+        make("UIStroke", {Color = accent, Thickness = 1, Transparency = 0.45}, b)
+        b.MouseEnter:Connect(function()
+            TweenService:Create(b, TweenInfo.new(0.12), {BackgroundColor3 = BRAND.Royal}):Play()
+        end)
+        b.MouseLeave:Connect(function()
+            TweenService:Create(b, TweenInfo.new(0.12), {BackgroundColor3 = BRAND.Mid}):Play()
+        end)
+        return b
+    end
+
+    local openBtn = button("OpenLog", "LOG", UDim2.new(1, -96, 0, 7), UDim2.fromOffset(40, 28), card)
+    local closeBtn = button("Close", "—", UDim2.new(1, -48, 0, 7), UDim2.fromOffset(36, 28), card)
+    local logText = make("TextLabel", {
+        Name = "LogText", Position = UDim2.fromOffset(12, 48), Size = UDim2.new(1, -24, 0, 92),
+        BackgroundColor3 = BRAND.Navy, BackgroundTransparency = 0.1, BorderSizePixel = 0,
+        Font = Enum.Font.Code, TextSize = 11, TextColor3 = BRAND.Text,
+        TextXAlignment = Enum.TextXAlignment.Left, TextYAlignment = Enum.TextYAlignment.Top,
+        TextWrapped = true, Text = "No activity yet.",
+    }, card)
+    make("UICorner", {CornerRadius = UDim.new(0, 7)}, logText)
+    local diagnostics = make("TextLabel", {
+        Name = "Diagnostics", Position = UDim2.fromOffset(12, 146), Size = UDim2.new(1, -24, 0, 54),
+        BackgroundTransparency = 1, Font = Enum.Font.Gotham, TextSize = 11,
+        TextColor3 = BRAND.Sheen, TextXAlignment = Enum.TextXAlignment.Left,
+        TextYAlignment = Enum.TextYAlignment.Top, TextWrapped = true,
+        Text = "Diagnostics: press CHECK to inspect the current session.",
+    }, card)
+    local stopBtn = button("StopAll", "STOP ALL", UDim2.fromOffset(12, 207), UDim2.new(0.5, -18, 0, 28), card)
+    stopBtn.BackgroundColor3 = Color3.fromRGB(100, 16, 36)
+    local checkBtn = button("Check", "CHECK", UDim2.new(0.5, 6, 0, 207), UDim2.new(0.5, -18, 0, 28), card)
+
+    local function renderLog()
+        local first = math.max(1, #logLines - maxLines + 1)
+        local out = {}
+        for i = first, #logLines do table.insert(out, logLines[i]) end
+        logText.Text = #out > 0 and table.concat(out, "\n") or "No activity yet."
+    end
+
+    local function logActivity(message)
+        table.insert(logLines, os.date("%H:%M:%S") .. "  " .. tostring(message))
+        if #logLines > 40 then table.remove(logLines, 1) end
+        renderLog()
+    end
+
+    local function setExpanded(value)
+        panelOpen = value
+        openBtn.Text = value and "HIDE" or "LOG"
+        local target = value and UDim2.fromOffset(300, 246) or UDim2.fromOffset(300, 42)
+        TweenService:Create(card, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Size = target}):Play()
+    end
+
+    openBtn.Activated:Connect(function() setExpanded(not panelOpen) end)
+    closeBtn.Activated:Connect(function() setExpanded(false) end)
+
+    local function runDiagnostics()
+        local char = LocalPlayer.Character
+        local humanoid = char and char:FindFirstChildOfClass("Humanoid")
+        local remotesText = tostring(REMOTE_COUNT or 0) .. "/10 remotes"
+        local guiText = playerGui and "PlayerGui OK" or "PlayerGui missing"
+        local charText = humanoid and "character OK" or "character not ready"
+        local libraryText = type(Library) == "table" and "UI library OK" or "UI library unavailable"
+        local saveText = SaveManager and "config manager available" or "config manager unavailable"
+        diagnostics.Text = table.concat({remotesText, guiText, charText, libraryText, saveText}, "  |  ")
+        logActivity("Diagnostics refreshed")
+    end
+
+    checkBtn.Activated:Connect(runDiagnostics)
+    stopBtn.Activated:Connect(function()
+        local stopped = 0
+        for name, toggleObj in pairs(Toggles or {}) do
+            local ok = pcall(function()
+                if toggleObj and toggleObj.SetValue then toggleObj:SetValue(false) end
+            end)
+            if ok then stopped += 1 end
+        end
+        pcall(function() if flyOn then stopFly() end end)
+        pcall(function() if noclipRunning then setNoclip(false) end end)
+        logActivity("Emergency stop requested; toggles processed: " .. tostring(stopped))
+        runDiagnostics()
+    end)
+
+    -- Record toggle changes without changing their behavior.
+    for name, toggleObj in pairs(Toggles or {}) do
+        pcall(function()
+            if toggleObj and toggleObj.OnChanged then
+                toggleObj.OnChanged(function(value)
+                    logActivity(tostring(name) .. " = " .. (value and "ON" or "OFF"))
+                end)
+            end
+        end)
+    end
+
+    -- Adapt panel width for narrow touch screens.
+    if UserInputService.TouchEnabled then
+        card.Size = UDim2.new(1, -24, 0, 42)
+        card.Position = UDim2.new(0, 12, 1, -12)
+        logText.Size = UDim2.new(1, -24, 0, 92)
+    end
+    logActivity("Fx Hub V2 tools ready")
+    runDiagnostics()
+end
+
+do
+	local Team = Tabs.Credits:AddLeftGroupbox("Team", ICON.ShieldOK, true, false)
+	Team:AddLabel("Owner - sempai.real")
+	Team:AddLabel("Game: " .. GAME_NAME)
+
+	pcall(function() Team:AddDivider() end)
+
+	local Community = Tabs.Credits:AddLeftGroupbox("Community", ICON.Heart, true, false)
+	pcall(function()
+
+		Community:AddDiscordBox("Invite", {
+			Avatar   = LOGO_ICON,
+			Title    = "Fx Hub",
+			Subtitle = BRAND.Invite,
+			Status   = "online",
+			Accent   = BRAND.Azure,
+			Link     = BRAND.Discord,
+			Buttons  = {
+				{
+					Text  = "Copy Invite",
+					Icon  = "copy",
+					Copy  = true,
+					Style = "Primary",
+				},
+				{
+					Text  = "Copy Short",
+					Icon  = "link",
+					Copy  = BRAND.Invite,
+					Style = "Secondary",
+				},
+			},
+		})
+	end)
+	Community:AddLabel("Report bugs or request a game in Discord.", true)
+end
+
+splashClose()
+
+Library:Notify({
+	Title = BRAND.Name,
+	Description = "Loaded for " .. GAME_NAME .. ". RightShift toggles the menu.",
+	Time = 5,
+	Type = "Info",
+})
